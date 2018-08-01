@@ -76,8 +76,8 @@ public class SimplePermissionsPlugin implements MethodCallHandler, PluginRegistr
         Activity activity = registrar.activity();
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.parse("package:" + activity.getPackageName()));
-        if (methodCall != null && methodCall.argument("permission") != null) {
-            String res = getManifestPermission(methodCall.argument("permission"));
+        if (methodCall != null && methodCall.argument("permission") != null && methodCall.argument("permission") instanceof String) {
+            String res = getManifestPermission(String.valueOf(methodCall.argument("permission")));
             if (res.equals(Manifest.permission.ACCESS_FINE_LOCATION) || res.equals(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             }

@@ -23,7 +23,8 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 public class SimplePermissionsPlugin implements MethodCallHandler, PluginRegistry.RequestPermissionsResultListener {
     private Registrar registrar;
     private Result result;
-    private MethodCall methodCall;
+    private String permission;
+    private String TAG = SimplePermissionsPlugin.class.getSimpleName();
 
     /**
      * Plugin registration.
@@ -41,9 +42,7 @@ public class SimplePermissionsPlugin implements MethodCallHandler, PluginRegistr
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        methodCall = call;
         String method = call.method;
-        String permission;
         switch (method) {
             case "getPlatformVersion":
                 result.success("Android " + android.os.Build.VERSION.RELEASE);
@@ -63,6 +62,7 @@ public class SimplePermissionsPlugin implements MethodCallHandler, PluginRegistr
                 requestPermission(permission);
                 break;
             case "openSettings":
+                permission = call.argument("permission");
                 openSettings();
                 result.success(true);
                 break;
@@ -76,16 +76,19 @@ public class SimplePermissionsPlugin implements MethodCallHandler, PluginRegistr
         Activity activity = registrar.activity();
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.parse("package:" + activity.getPackageName()));
-        if (methodCall != null && methodCall.argument("permission") != null && methodCall.argument("permission") instanceof String) {
-            String res = getManifestPermission(String.valueOf(methodCall.argument("permission")));
+        if (permission != null) {
+            String res = getManifestPermission(permission);
             if (res.equals(Manifest.permission.ACCESS_FINE_LOCATION) || res.equals(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             }
+            Log.i(TAG, "Method Success Call Location");
+        } else {
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Log.i(TAG, "Method Success Call Detail");
         }
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(intent);
-        methodCall = null;
+        permission = null;
     }
 
     private String getManifestPermission(String permission) {
